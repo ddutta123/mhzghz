@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CLP Tab Page</title>
+    <title>STA Tab Page</title>
     <!-- Include the same CSS as index.html for consistent styling -->
     <style>
         .tab-navigation {
@@ -44,11 +44,11 @@
 </head>
 <body>
 
-    <h1>Welcome to the INDEX Page</h1>
+    <h1>Welcome to the STA Page</h1>
 
     <!-- Navigation Bar - Note the 'active' class is now on the STA item -->
     <ul class="tab-navigation">
-        <li class="tab-item active">
+        <li class="tab-item">
             <a href="index.html">Home (Index)</a>
         </li>
         <li class="tab-item">
@@ -63,7 +63,7 @@
         <li class="tab-item">
             <a href="vcs.html">VCS Tab</a>
         </li>
-        <li class="tab-item">
+        <li class="tab-item active">
             <a href="lowpower.html">LOW POWER Tab</a>
         </li>
 
@@ -71,13 +71,11 @@
 
     <!-- Content Area for this page -->
     <div class="tab-content">
-        <h2>INDEX Content</h2>
-        <p>This is specific content for the <strong>INDEX</strong> section.</p>
-        <p style="display:inline-block;">
-        <img src="sample.png">
-         Lets get rolling !!
-        </p>
-
+        <h2>LOW POWER Content</h2>
+        <p>This is specific content for the <strong>LOW POWER</strong> section, loaded from <code>lowpower.html</code>.</p>
+        <p>1) Total Power = Dynamic Power + Leakage power >
+        <p>2) IDDDQ </p>
+        <p>3) Dynamic Power = 1/2CV^2F </p>
     </div>
 
 </body>
