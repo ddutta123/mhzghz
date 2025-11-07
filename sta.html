@@ -69,10 +69,72 @@
     <div class="tab-content">
         <h2>STA Content</h2>
         <p>This is specific content for the <strong>STA</strong> section, loaded from <code>sta.html</code>.</p>
-        <p>1) get_cells * </p>
+        <p><strong>1) Get Commands </strong> </p>
+        <p>   restore_session session_name.db </p>
+        <p>   get_cells * </p>
+        <p>   get_attribute [get_cells abc] ref_name </p>
+        <p>   get_attribute [get_cells abc] clocks </p>
+        <p>   all_connected </p>   
+        <p>   sizeof_collection </p>
         <p>2) get_cells -filter "ref_name=~abcd"</p>
+        <p>3) set abc [get_ports *] </p>
+        <p>4) set abc [add_to_collection $abc [get_pins *]] </p>
+        <p>5) sizeof_collection abc </p>
+        <p>6) foreach_in_collection cell [get_cells -hier -filter is_hierarchial=='true'] </p>
+        <p>7) echo"instance [get_object_name $cell] is_hierarchial" </p>
+        <p>8) remove_from_collection [all_inputs] [get_ports clk] </p>
+        <p>9) filter_collection [get_cells *] "ref_name=~*pci" </p>
+        <p>10) sort_collection , compare_collection </p>
+<p><strong>SET CLOCK and OTHER Variables </strong> </p>
+        <p>11) set_clock_uncertainity -setup Tu [get_clocks clk] # Tu = skew + jitter + margin </p>
+        <p>12) set_clock_latency -source -max 3 [get_clocks clk] </p>
+        <p>13) set_clock_transition -max Tu [get_clocks clk] </p>
+        <p>14) set_propagated_clock </p>
+        <p>15) set_input_delay -max Tu -clock clk [get_ports A] </p>
+        <p>16) remove_input_delay [get_ports clk] </p>
+        <p>17) set_output_delay -max Tu -clock clk [get_ports A] </p>
+        <p>18) set_load 3 [get_ports B] </p>
+        <p>19) set_input_transition 0.12 [get_ports B] </p>
+        <p>20) set_driving_cell -lib_cell FD1 -pin Qn [get_ports A] </p>
+<p><strong>REPORTS </strong> </p>
+        <p>21) report_clock -skew , report_clock -skew -attr , report_design , report_path_group </p>
+        <p>22) report_constraints -all_violators </p>
+        <p>23) report_timing -net -cap - significant_digit 5 -max_path 5 -nworst 5 </p>
+<p><strong>Optimization </strong> </p>
+        <p>24) set_boundary_optimization <design_name> false </p>
+        <p>25) compile_ultra -no_boundary </p>
+        <p>26) compile_ultra -no_autoungroup </p>
+        <p>27) compile_ultra -timing </p>
+        <p>28) compile_ultra -retime </p>
+        <p>29) set_dont_retime <cell or design> true </p>
+        <p>30) set_optimized_registers true </p>
+        <p><strong>PIPELINE </strong> </p>
+        <p>31) set_optimized_register true -design Pipeline </p>
+        <p>32) compile_ultra -retime -timing </p>
+        <p><strong>GROUPS </strong> </p>
+        <p>33) group_path -name INPUTS -from [all_inputs] </p>
+        <p>34) set_clock_groups -logically_exclusive -group "CLK1 CLK2" -group "CLK3 CLK4" </p>
+        <p>35) group_path -name CLK -critical 0.2 -weight 5 </p>
+        <p>36) create_clock -period 5 -name clk -waveform {2 2.5 5} [get_ports clk] </p>
+        <p><strong>MCP </strong> </p>
+        <p>37) slow to fast : setup -end(default) hold -end(force) </p>
+        <p>38) fast_to_slow : setup -start(force) hold -end(default) </p>
+<p><strong>PROCS </strong> </p>
+        <p>39) 
+        <p>proc afoe {pin} { </p>
+        <p>puts "[list_col [all_fanout -from $pin -flat -endpoints _only]]" </p>
+        <p> } </p>
+        <p>40) 
+        <p>proc afis {pin} { </p>
+        <p>puts "[list_col [all_fanin -to $pin -flat]]" </p>
+        <p> } </p>
+        <p>41) 
+        <p>proc lc {col} { </p>
+        <p>foreach_in_collection e $col { </p>
+        <p> puts [get_object_name $e] </p>
+        <p> } </p>
+        <p> } </p>
 
     </div>
-
 </body>
 </html>
