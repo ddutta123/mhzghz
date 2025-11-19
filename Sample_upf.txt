@@ -1,0 +1,104 @@
+A UPF 3.0 file is a Tcl-based text file that defines the power management strategy for an electronic design. 
+Below is a sample UPF 3.0 file that defines two power domains, supply networks, isolation, and power states for a simple design with a CPU and a peripheral. 
+Key Elements: • : Specifies the standard version used. 
+• : Defines the top level of the design hierarchy. 
+•  / : Define physical connections for power and ground. 
+• : Connects ports to nets. 
+• : Specifies the primary power and ground for a power domain. 
+• : Partitions the design into separate power regions. 
+• : Inserts a power switch to control the supply to a domain. 
+• : Specifies the strategy for handling signals that cross between domains at different power states to prevent data corruption. 
+• : Defines which registers should have their state retained during a power-down event. 
+•  / : Describes the valid power states for the system and their associated supply expressions. 
+
+# UPF 3.0 Sample File: Simple CPU and Peripheral Design
+
+# Specify the UPF version
+upf_version 3.0
+
+# Set the top-level design
+set_design_top tb/top_design
+
+############################################################
+# Create Supply Ports and Nets for the TOP domain
+############################################################
+create_supply_port VDD_TOP_port -domain top_design
+create_supply_port VSS_TOP_port -domain top_design
+create_supply_net VDD_TOP -domain top_design
+create_supply_net VSS_TOP -domain top_design
+
+connect_supply_net VDD_TOP -ports {VDD_TOP_port}
+connect_supply_net VSS_TOP -ports {VSS_TOP_port}
+
+# Set primary supply for the top domain
+set_domain_supply_net top_design -primary_power_net VDD_TOP -primary_ground_net VSS_TOP
+
+############################################################
+# Define Power Domains
+############################################################
+
+# Create the always-on (AON) domain for the CPU core
+create_power_domain CPU_AON_PD -elements {CPU_core}
+
+# Create the switchable power domain for the Peripheral
+create_power_domain PERIPHERAL_SW_PD -elements {Peripheral_block}
+
+############################################################
+# Create Supply Networks for Sub-domains
+############################################################
+
+# CPU domain (uses TOP supplies, always on)
+set_domain_supply_net CPU_AON_PD -primary_power_net VDD_TOP -primary_ground_net VSS_TOP
+
+# Peripheral domain (switchable supply VDD_PERI)
+create_supply_net VDD_PERI -domain PERIPHERAL_SW_PD
+create_supply_net VSS_PERI -domain PERIPHERAL_SW_PD
+set_domain_supply_net PERIPHERAL_SW_PD -primary_power_net VDD_PERI -primary_ground_net VSS_PERI
+
+############################################################
+# Create Power Switch for the Peripheral Domain
+############################################################
+create_power_switch PERI_SW \
+  -domain PERIPHERAL_SW_PD \
+  -input_supply_port {vin VDD_TOP} \
+  -output_supply_port {vout VDD_PERI} \
+  -control_port {enable_signal peri_pwr_en} \
+  -on_state {ON vin {enable_signal == 1}} \
+  -off_state {OFF {enable_signal == 0}}
+
+############################################################
+# Define Isolation Strategy for signals crossing domains
+############################################################
+# Isolate signals going from the switchable PERIPHERAL_SW_PD to the AON CPU_AON_PD
+set_isolation PERI_to_CPU_isolation \
+  -domain PERIPHERAL_SW_PD \
+  -isolation_power_net VDD_TOP \
+  -isolation_ground_net VSS_TOP \
+  -location parent \
+  -applies_to outputs \
+  -isolation_signal peri_iso_en \
+  -clamp_value 0
+
+############################################################
+# Define Retention Strategy for the Peripheral Domain
+############################################################
+# Retain key registers in the peripheral when powered off
+set_retention PERI_retention \
+  -domain PERIPHERAL_SW_PD \
+  -retention_power_net VDD_TOP \
+  -retention_ground_net VSS_TOP \
+  -restore_trigger {state_ret_restore -edge rising} \
+  -save_trigger {state_ret_save -edge falling}
+
+############################################################
+# Define Power State Table (PST) for the design
+############################################################
+create_power_state_table top_design.PST -supply_ports {VDD_TOP_port VSS_TOP_port} -power_domains {PERIPHERAL_SW_PD}
+  # State OFF: Peripheral powered off
+  add_power_state OFF -supply_expr { {VDD_TOP_port == state_on} && {PERIPHERAL_SW_PD.primary_power == state_off} }
+  # State ON_IDLE: Peripheral powered on, low activity
+  add_power_state ON_IDLE -supply_expr { {VDD_TOP_port == state_on} && {PERIPHERAL_SW_PD.primary_power == state_on} }
+  # State ON_ACTIVE: Peripheral powered on, high activity (power consumption defined externally/via expressions)
+  add_power_state ON_ACTIVE -supply_expr { {VDD_TOP_port == state_on} && {PERIPHERAL_SW_PD.primary_power == state_on} }
+
+
